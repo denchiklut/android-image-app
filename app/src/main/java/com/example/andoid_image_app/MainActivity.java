@@ -49,9 +49,10 @@ public class MainActivity extends AppCompatActivity {
 
                                 String id = image.getString("id");
                                 String src = imgUrls.getString("regular");
+                                String full = imgUrls.getString("full");
                                 String desc = image.getString("description");
 
-                                ImageData data = new ImageData(id, src, desc);
+                                ImageData data = new ImageData(id, src, full, desc);
                                 imageData.add(data);
                             }
 

@@ -1,15 +1,21 @@
 package com.example.andoid_image_app;
 
+import android.app.DownloadManager;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
+import android.webkit.URLUtil;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -22,6 +28,8 @@ public class SlideshowDialogFragment extends DialogFragment {
     private ViewPager viewPager;
     private TextView desc;
     private TextView count;
+    private ImageView download;
+    private DownloadManager downloadManager;
     private int selectedPosition = 0;
 
     static SlideshowDialogFragment newInstance() {
@@ -35,6 +43,7 @@ public class SlideshowDialogFragment extends DialogFragment {
         viewPager =  view.findViewById(R.id.viewpager);
         count =  view.findViewById(R.id.count);
         desc =  view.findViewById(R.id.title);
+        download = view.findViewById(R.id.download);
 
         images = (ArrayList<ImageData>) getArguments().getSerializable("images");
         selectedPosition = getArguments().getInt("position");
@@ -45,6 +54,26 @@ public class SlideshowDialogFragment extends DialogFragment {
 
         setCurrentItem(selectedPosition);
 
+        download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                downloadManager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
+                Uri uri = Uri.parse(images.get(selectedPosition).getFull());
+                String nameOfFile = URLUtil.guessFileName(String.valueOf(uri), null,
+                        MimeTypeMap.getFileExtensionFromUrl(String.valueOf(uri)));
+
+                DownloadManager.Request request = new DownloadManager.Request(uri);
+
+                nameOfFile = nameOfFile.replace(".bin", ".png");
+
+                request.setDescription(nameOfFile);
+                request.setTitle(nameOfFile);
+                Log.i("myLog", nameOfFile);
+
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                downloadManager.enqueue(request);
+            }
+        });
         return  view;
     }
 
@@ -86,7 +115,7 @@ public class SlideshowDialogFragment extends DialogFragment {
 
             ImageData img = images.get(position);
 
-            GlideApp.with(getActivity()).load(img.getSrc())
+            GlideApp.with(getActivity()).load(img.getFull())
                     .thumbnail(0.5f)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(imageViewPreview);
